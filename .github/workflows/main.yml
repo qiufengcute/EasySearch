@@ -1,9 +1,13 @@
 name: Build and Create Release Draft
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (without "v" prefix, e.g., 1.0.0)'
+        required: true
+        type: string
+        default: '1.0.0'
 
 jobs:
   build:
@@ -63,11 +67,11 @@ jobs:
     - name: List files for debugging
       run: ls -R ./artifacts
 
-    - name: Create Release Draft
+    - name: Create Release Draft with Tag
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
+        tag_name: ${{ inputs.version }}
+        name: Release ${{ inputs.version }}
         draft: true
         files: |
           ./artifacts/winx64/winx64*
