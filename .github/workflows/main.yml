@@ -1,0 +1,77 @@
+name: Build and Create Release Draft
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build Executables
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: 'winx64'
+            os: 'windows-latest'
+            arch: 'x64'
+          - name: 'winx86'
+            os: 'windows-latest'
+            arch: 'x86'
+          - name: 'linuxx64'
+            os: 'ubuntu-latest'
+            arch: 'x64'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Upgrade pip and install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Build executable
+      run: |
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
+        else
+          pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
+        fi
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.name }}
+        path: dist/${{ matrix.name }}*
+
+  create-release:
+    name: Create Release Draft
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: List files for debugging
+      run: ls -R ./artifacts
+
+    - name: Create Release Draft
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        draft: true
+        files: |
+          ./artifacts/winx64/winx64*
+          ./artifacts/winx86/winx86*
+          ./artifacts/linuxx64/linuxx64*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
