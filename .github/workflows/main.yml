@@ -42,17 +42,6 @@ jobs:
         pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.name }}.exe" main.py
         echo "=== 构建完成 ==="
 
-    - name: Check build output files
-      run: |
-        echo "=== 检查 dist 目录 ==="
-        ls -la dist/
-        echo "=== 检查构建文件详情 ==="
-        find dist/ -type f -exec file {} \;
-        echo "=== 文件大小 ==="
-        du -h dist/*
-        echo "=== 最终文件名 ==="
-        echo "Windows 文件: ${{ matrix.name }}.exe"
-
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -71,29 +60,6 @@ jobs:
       with:
         path: ./artifacts
 
-    - name: Debug artifacts structure
-      run: |
-        echo "=== 完整的 artifacts 目录结构 ==="
-        find ./artifacts -type f -print
-        echo "=== 分层结构 ==="
-        ls -la ./artifacts/
-        echo "=== winx64 目录内容 ==="
-        ls -la ./artifacts/winx64/ || echo "winx64 目录不存在"
-        echo "=== winx86 目录内容 ==="
-        ls -la ./artifacts/winx86/ || echo "winx86 目录不存在"
-        echo "=== 所有文件详情 ==="
-        find ./artifacts -type f -exec echo "文件: {} | 大小: $(du -h {} | cut -f1)" \;
-        echo "=== 文件类型 ==="
-        find ./artifacts -type f -exec file {} \;
-
-    - name: List files with wildcard matching
-      run: |
-        echo "=== 测试文件匹配模式 ==="
-        echo "winx64/* 匹配:"
-        ls -la ./artifacts/winx64/* 2>/dev/null || echo "无匹配文件"
-        echo "winx86/* 匹配:"
-        ls -la ./artifacts/winx86/* 2>/dev/null || echo "无匹配文件"
-
     - name: Create Release Draft with Tag
       id: create-release
       uses: softprops/action-gh-release@v1
@@ -106,13 +72,6 @@ jobs:
           ./artifacts/winx86/winx86.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Verify release creation
-      run: |
-        echo "=== Release 创建状态 ==="
-        echo "版本号: ${{ github.event.inputs.version }}"
-        echo "如果看到这一步，说明 Release 创建成功"
-        echo "请检查 GitHub Releases 页面查看文件是否上传"
 
     - name: Add Release Link to Summary
       run: echo "<h1>🚀 草稿Release已创建</h1><br>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
