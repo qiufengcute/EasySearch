@@ -1,7 +1,7 @@
 # EasySearch
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-blue)]()
+[![Platform](https://img.shields.io/badge/platform-Windows-blue)]()
 
 一个简洁高效的本地搜索引擎工具
 
@@ -44,4 +44,4 @@
 
 ---
 
-**温馨提示**: 如果在使用过程中遇到任何问题，可通过 [Issues](https://github.com/your-username/your-project/issues) 向我们反馈。
+**温馨提示**: 如果在使用过程中遇到任何问题，可通过 [Issues](https://github.com/qiufengcute/EasySearch/issues) 向我们反馈。
