@@ -39,9 +39,7 @@ jobs:
     - name: Build executable
       run: |
         echo "=== 开始构建 ${{ matrix.name }} ==="
-        pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
-        # 为 Windows 文件添加 .exe 后缀
-        mv dist/${{ matrix.name }} dist/${{ matrix.name }}.exe
+        pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.name }}.exe" main.py
         echo "=== 构建完成 ==="
 
     - name: Check build output files
