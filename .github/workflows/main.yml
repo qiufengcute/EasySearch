@@ -21,9 +21,6 @@ jobs:
           - name: 'winx86'
             os: 'windows-latest'
             arch: 'x86'
-          - name: 'linuxx64'
-            os: 'ubuntu-latest'
-            arch: 'x64'
     
     steps:
     - name: Checkout code
@@ -42,11 +39,9 @@ jobs:
     - name: Build executable
       run: |
         echo "=== 开始构建 ${{ matrix.name }} ==="
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
-        else
-          pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
-        fi
+        pyinstaller --onefile --name "${{ matrix.name }}" --noconsole --hidden-import=main main.py
+        # 为 Windows 文件添加 .exe 后缀
+        mv dist/${{ matrix.name }} dist/${{ matrix.name }}.exe
         echo "=== 构建完成 ==="
 
     - name: Check build output files
@@ -57,6 +52,8 @@ jobs:
         find dist/ -type f -exec file {} \;
         echo "=== 文件大小 ==="
         du -h dist/*
+        echo "=== 最终文件名 ==="
+        echo "Windows 文件: ${{ matrix.name }}.exe"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -86,8 +83,6 @@ jobs:
         ls -la ./artifacts/winx64/ || echo "winx64 目录不存在"
         echo "=== winx86 目录内容 ==="
         ls -la ./artifacts/winx86/ || echo "winx86 目录不存在"
-        echo "=== linuxx64 目录内容 ==="
-        ls -la ./artifacts/linuxx64/ || echo "linuxx64 目录不存在"
         echo "=== 所有文件详情 ==="
         find ./artifacts -type f -exec echo "文件: {} | 大小: $(du -h {} | cut -f1)" \;
         echo "=== 文件类型 ==="
@@ -100,8 +95,6 @@ jobs:
         ls -la ./artifacts/winx64/* 2>/dev/null || echo "无匹配文件"
         echo "winx86/* 匹配:"
         ls -la ./artifacts/winx86/* 2>/dev/null || echo "无匹配文件"
-        echo "linuxx64/* 匹配:"
-        ls -la ./artifacts/linuxx64/* 2>/dev/null || echo "无匹配文件"
 
     - name: Create Release Draft with Tag
       uses: softprops/action-gh-release@v1
@@ -110,9 +103,8 @@ jobs:
         name: Release ${{ github.event.inputs.version }}
         draft: true
         files: |
-          ./artifacts/winx64/*
-          ./artifacts/winx86/*
-          ./artifacts/linuxx64/*
+          ./artifacts/winx64/winx64.exe
+          ./artifacts/winx86/winx86.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -122,3 +114,6 @@ jobs:
         echo "版本号: ${{ github.event.inputs.version }}"
         echo "如果看到这一步，说明 Release 创建成功"
         echo "请检查 GitHub Releases 页面查看文件是否上传"
+
+    - name: Add Release Link to Summary
+      run: echo "### 🚀 草稿Release已创建\n\n草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a> 仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
