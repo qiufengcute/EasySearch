@@ -115,4 +115,4 @@ jobs:
         echo "请检查 GitHub Releases 页面查看文件是否上传"
 
     - name: Add Release Link to Summary
-      run: echo "### 🚀 草稿Release已创建\n\n草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a> 仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
+      run: echo "<h1>🚀 草稿Release已创建</h1><br>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
