@@ -97,6 +97,7 @@ jobs:
         ls -la ./artifacts/winx86/* 2>/dev/null || echo "无匹配文件"
 
     - name: Create Release Draft with Tag
+      id: create-release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.event.inputs.version }}
