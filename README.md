@@ -25,8 +25,11 @@
 
 ## 下载安装
 
-1. 从 [Release 页面](https://github.com/qiufengcute/EasySearch/releases) 下载对应系统的可执行文件
+1. 从 [Release 页面](https://github.com/qiufengcute/EasySearch/releases) 下载对应系统和架构的可执行文件
 2. 运行可执行文件
+
+### Linux & Macos 用户提示
+从网络下载的可执行文件可能会丢失执行权限，如果遇到"权限被拒绝"或"无法运行"的错误，请先执行 `chmod +x 文件名` 添加执行权限。
 
 ## 快速开始
 
