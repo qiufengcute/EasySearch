@@ -1,7 +1,7 @@
 # EasySearch
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%2520%257C%2520macOS%2520%257C%2520Linux-blue)]()
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)]()
 
 一个简洁高效的本地搜索引擎工具
 
