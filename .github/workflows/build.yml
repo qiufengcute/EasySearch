@@ -21,6 +21,18 @@ jobs:
           - name: 'winx86'
             os: 'windows-latest'
             arch: 'x86'
+          - name: 'linuxx64'
+            os: 'ubuntu-latest'
+            arch: 'x64'
+          - name: 'linuxx86'
+            os: 'ubuntu-latest'
+            arch: 'x86'
+          - name: 'macosintel'
+            os: 'macos-latest'
+            arch: 'x64'
+          - name: 'macosm'
+            os: 'macos-latest'
+            arch: 'arm64'
     
     steps:
     - name: Checkout code
@@ -39,14 +51,49 @@ jobs:
     - name: Build executable
       run: |
         echo "=== 开始构建 ${{ matrix.name }} ==="
-        pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.name }}.exe" main.py
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows
+          pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.name }}.exe" main.py
+        else
+          # Linux&MacOS
+          pyinstaller --noconfirm --onefile --name "${{ matrix.name }}" main.py
+        fi
         echo "=== 构建完成 ==="
+
+    - name: Generate SHA256 checksum
+      run: |
+        echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+        
+        # 确定文件路径
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          FILE_PATH="dist/${{ matrix.name }}.exe"
+        else
+          FILE_PATH="dist/${{ matrix.name }}"
+        fi
+        
+        # 生成校验码
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows 使用 certutil
+          certutil -hashfile "$FILE_PATH" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
+        else
+          # Linux/macOS 使用 shasum
+          shasum -a 256 "$FILE_PATH" | cut -d ' ' -f 1 > "checksum_temp.txt"
+        fi
+        
+        # 读取校验码并保存
+        CHECKSUM=$(cat "checksum_temp.txt")
+        echo "${{ matrix.name }}:$CHECKSUM" > sha256_${{ matrix.name }}.txt
+        rm -f "checksum_temp.txt"
+        
+        echo "===生成完成==="
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.name }}
-        path: dist/${{ matrix.name }}*
+        path: |
+          dist/${{ matrix.name }}*
+          sha256_${{ matrix.name }}.txt
 
   create-release:
     name: Create Release Draft
@@ -68,8 +115,7 @@ jobs:
         name: Release ${{ github.event.inputs.version }}
         draft: true
         files: |
-          ./artifacts/winx64/winx64.exe
-          ./artifacts/winx86/winx86.exe
+          ./artifacts/**/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
