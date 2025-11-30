@@ -29,7 +29,7 @@ jobs:
       run: |
         echo "=== 开始拍摄应用截图 ==="
         python -u main.py
-        python -c "import time;time.sleep(5);import pyautogui;window = pyautogui.getWindowsWithTitle('EasySearch')[0];window.activate();time.sleep(0.5);top = window.top;left = window.left;width = window.width;height = window.height;pyautogui.screenshot(region=(left,top,width,height)).save('screenshot.png')"
+        python -c "import time;time.sleep(5);print('应用已启动')import pyautogui;window = pyautogui.getWindowsWithTitle('EasySearch')[0];window.activate();time.sleep(0.5);top = window.top;left = window.left;width = window.width;height = window.height;pyautogui.screenshot(region=(left,top,width,height)).save('screenshot.png')"
         echo "=== 拍摄完成 ==="
 
     - name: Upload screenshot to repo
