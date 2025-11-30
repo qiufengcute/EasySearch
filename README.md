@@ -2,6 +2,14 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)]()
+[![Download](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green)]()
+![GitHub Stars](https://img.shields.io/github/stars/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
+![GitHub Forks](https://img.shields.io/github/forks/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
+![GitHub Issues](https://img.shields.io/github/issues/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
+![License](https://img.shields.io/github/license/qiufengcute/EasySearch?style=for-the-badge)(LICENSE)
+![Version](https://img.shields.io/github/v/release/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
+![Build Status](https://img.shields.io/github/actions/workflow/status/qiufengcute/EasySearch/build.yml?style=for-the-badge&logo=githubactions)(https://github.com/qiufengcute/EasySearch/actions)
+![Download](https://img.shields.io/github/downloads/qiufengcute/EasySearch/total?style=for-the-badge&logo=github)(https://github.com/qiufengcute/EasySearch/Release)
 
 一个简洁高效的本地搜索引擎工具
 
