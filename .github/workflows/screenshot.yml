@@ -51,8 +51,10 @@ jobs:
 
       - name: Run GUI program
         run: |
+          export QT_QPA_PLATFORM=xcb
+          export QT_OPENGL=software
+          export LIBGL_ALWAYS_SOFTWARE=1
           python -u main.py &
-
           sleep 2  # 等待 GUI 程序渲染完成
 
       - name: Screenshot
