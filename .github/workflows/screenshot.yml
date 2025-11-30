@@ -38,7 +38,6 @@ jobs:
 
       - name: Run GUI program
         run: |
-          chmod +x ./your_program
           python -u main.py &
 
           sleep 2  # 等待 GUI 程序渲染完成
