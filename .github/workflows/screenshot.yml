@@ -10,7 +10,8 @@ jobs:
   take:
     name: Take screenshot
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -59,14 +60,9 @@ jobs:
           import -window root screenshot.png
 
       - name: Commit screenshot
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.email "github-actions@github.com"
           git config user.name "github-actions"
-      
           git add screenshot.png
           git commit -m "AUTO:Update screenshot" || true
-      
-          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-          git push origin HEAD:main --force
+          git push
