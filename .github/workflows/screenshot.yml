@@ -69,4 +69,4 @@ jobs:
           git commit -m "AUTO:Update screenshot" || true
       
           git remote set-url origin https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-          git push origin HEAD:main
+          git push origin HEAD:main --force
