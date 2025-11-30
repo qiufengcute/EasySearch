@@ -1,15 +1,14 @@
 # EasySearch
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue)]()
-[![Download](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-green)]()
-![GitHub Stars](https://img.shields.io/github/stars/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
-![GitHub Forks](https://img.shields.io/github/forks/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
-![GitHub Issues](https://img.shields.io/github/issues/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
-![License](https://img.shields.io/github/license/qiufengcute/EasySearch?style=for-the-badge)(LICENSE)
-![Version](https://img.shields.io/github/v/release/qiufengcute/EasySearch?style=for-the-badge&logo=github)()
-![Build Status](https://img.shields.io/github/actions/workflow/status/qiufengcute/EasySearch/build.yml?style=for-the-badge&logo=githubactions)(https://github.com/qiufengcute/EasySearch/actions)
-![Download](https://img.shields.io/github/downloads/qiufengcute/EasySearch/total?style=for-the-badge&logo=github)(https://github.com/qiufengcute/EasySearch/Release)
+[![Stars](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.stargazers_count&label=Stars&color=gold&style=for-the-badge&logo=star&logoColor=white)](https://github.com/qiufengcute/EasySearch/stargazers)
+[![Forks](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.forks_count&label=Forks&color=green&style=for-the-badge&logo=git&logoColor=white)](https://github.com/qiufengcute/EasySearch/forks)
+[![Issues](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.open_issues_count&label=Issues&color=orange&style=for-the-badge&logo=message-alert&logoColor=white)](https://github.com/qiufengcute/EasySearch/issues)
+[![PRs](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.subscribers_count&label=PRs&color=blue&style=for-the-badge&logo=git-pull-request&logoColor=white)](https://github.com/qiufengcute/EasySearch/pulls)
+[![Build Status](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch/actions/runs&query=$.workflow_runs[0].conclusion&label=Build&color=success&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/qiufengcute/EasySearch/actions)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch/releases/latest&query=$.tag_name&label=Version&color=blueviolet&style=for-the-badge&logo=tag&logoColor=white)](#)
+[![License](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.license.spdx_id&label=License&color=purple&style=for-the-badge&logo=law&logoColor=white)](LICENSE)
+[![Download](https://img.shields.io/badge/Download-Latest%20Release-ff69b4?style=for-the-badge&logo=download&logoColor=white)](https://github.com/your-username/your-repo/releases/latest)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-gray?style=for-the-badge&logo=windows&logoColor=white)](#)
 
 一个简洁高效的本地搜索引擎工具
 
