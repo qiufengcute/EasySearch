@@ -1,0 +1,51 @@
+name: Take Screenshot
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build and Create Release Draft"]
+    types: [requested]
+
+jobs:
+  take:
+    name: Take screenshot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: 3.12
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-apps imagemagick
+
+      - name: Start virtual display (Xvfb)
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          export DISPLAY=:99
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Run GUI program
+        run: |
+          chmod +x ./your_program
+          python -u main.py &
+
+          sleep 2  # 等待 GUI 程序渲染完成
+
+      - name: Screenshot
+        run: |
+          import -window root screenshot.png
+
+      - name: Commit and push
+        run: |
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git add screenshot.png
+          git commit -m "AUTO:Update screenshot" || echo "Nothing to commit"
+          git push
