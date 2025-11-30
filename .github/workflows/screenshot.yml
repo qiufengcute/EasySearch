@@ -1,0 +1,68 @@
+name: Take screenshot
+
+on:
+  workflow_run:
+    workflows: ["Build and Create Release Draft"]
+    types: [requested]
+  workflow_dispatch:
+
+jobs:
+  take:
+    name: Take screenshot
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Upgrade pip and install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller PySide6 requests urllib3 chardet certifi idna
+
+    - name: Build executable for Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "=== 开始构建 ${{ matrix.name }} ==="
+        pyinstaller --noconfirm --onefile --windowed --name "${{ matrix.name }}.exe" main.py
+        echo "=== 构建完成 ==="
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.name }}
+        path: |
+          dist/${{ matrix.name }}*
+          sha256_${{ matrix.name }}.txt
+
+  create-release:
+    name: Create Release Draft
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./artifacts
+
+    - name: Create Release Draft with Tag
+      id: create-release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.version }}
+        name: Release ${{ github.event.inputs.version }}
+        draft: true
+        files: |
+          ./artifacts/**/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add Release Link to Summary
+      run: echo "<h1>🚀 草稿Release已创建</h1>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
