@@ -53,6 +53,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ needs.check.outputs.should_build }} == "false"
     steps:
+      - run: |
+          e = ${{ needs.check.outputs.should_build }}
+          echo $e
+          echo $e == "true"
+          echo $e == "false
+
+      - if: ${{ needs.check.outputs.should_build }} == "false"
+        run: echo "o"
+    
       - name: Download errors
         uses: actions/download-artifact@v4
         with:
