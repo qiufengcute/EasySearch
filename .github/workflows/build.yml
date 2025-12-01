@@ -45,6 +45,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
+        if: ${{ steps.check.outputs.should_build == 'false' }}
         with:
           name: errors
           path: errors.txt
