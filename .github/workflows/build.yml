@@ -13,7 +13,7 @@ jobs:
     name: Check code error
     runs-on: ubuntu-latest
     outputs:
-      should_build: ${{ steps.decide.outputs.should_build }}
+      should_build: ${{ steps.check.outputs.should_build }}
 
     steps:
       - name: Checkout code
