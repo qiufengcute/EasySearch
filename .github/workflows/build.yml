@@ -54,10 +54,10 @@ jobs:
     if: ${{ needs.check.outputs.should_build }} == "false"
     steps:
       - run: |
-          e = ${{ needs.check.outputs.should_build }}
+          $e = "${{ needs.check.outputs.should_build }}"
           echo $e
           echo $e == "true"
-          echo $e == "false
+          echo $e == "false"
 
       - if: ${{ needs.check.outputs.should_build }} == "false"
         run: echo "o"
