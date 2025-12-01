@@ -47,6 +47,13 @@ jobs:
           name: errors
           path: errors.txt
 
+  debug:
+    needs: check
+    name: debug
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo needs.check.outputs.should_build
+
   echo-error:
     needs: check
     name: Echo errors
