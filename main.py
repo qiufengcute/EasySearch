@@ -348,11 +348,9 @@ class SearchWorker(QThread):
                         req_url = req_url.replace(ph, quote_plus(self.query))
                         replaced_query = True
 
-                replaced_apikey = False
                 for ph in apikey_placeholders:
                     if ph in req_url:
                         req_url = req_url.replace(ph, quote_plus(api_key))
-                        replaced_apikey = True
 
                 # 如果没有任何占位符被替换，且 URL 查询串中也没有 q/keyword/query/search 等参数，则再追加参数
                 if not replaced_query:
