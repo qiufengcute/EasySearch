@@ -77,7 +77,7 @@ jobs:
     needs: check
     name: Build Executables
     runs-on: ${{ matrix.os }}
-    if: ${{ needs.check.outputs.should_build }} == "true"
+    if: fromJSON(${{ needs.check.outputs.should_build }}) == true
     strategy:
       matrix:
         include:
@@ -160,9 +160,8 @@ jobs:
 
   create-release:
     name: Create Release Draft
-    needs: [check, build]
+    needs: build
     runs-on: ubuntu-latest
-    if: ${{ needs.check.outputs.should_build }} == "true"
     permissions:
       contents: write
     steps:
