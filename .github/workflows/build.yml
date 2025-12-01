@@ -32,7 +32,7 @@ jobs:
       - name: Check
         id: check
         run: |
-          pyflakes . > errors.txt
+          pyflakes . > errors.txt || :
           if [ -s errors.txt ]; then
             echo "有错误"
             echo "should_build=false" >> $GITHUB_OUTPUT
