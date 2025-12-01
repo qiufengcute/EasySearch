@@ -47,18 +47,11 @@ jobs:
           name: errors
           path: errors.txt
 
-  debug:
-    needs: check
-    name: debug
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{ needs.check.outputs.should_build }}
-
   echo-error:
     needs: check
     name: Echo errors
     runs-on: ubuntu-latest
-    if: fromJSON(${{ needs.check.outputs.should_build }}) == false
+    if: ${{ needs.check.outputs.should_build }} == "false"
     steps:
       - name: Download errors
         uses: actions/download-artifact@v4
@@ -75,7 +68,7 @@ jobs:
     needs: check
     name: Build Executables
     runs-on: ${{ matrix.os }}
-    if: fromJSON(${{ needs.check.outputs.should_build }}) == true
+    if: ${{ needs.check.outputs.should_build }} == "true"
     strategy:
       matrix:
         include:
@@ -158,8 +151,9 @@ jobs:
 
   create-release:
     name: Create Release Draft
-    needs: build
+    needs: [check, build]
     runs-on: ubuntu-latest
+    if: ${{ needs.check.outputs.should_build }} == "true"
     permissions:
       contents: write
     steps:
