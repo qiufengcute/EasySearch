@@ -36,6 +36,7 @@ jobs:
           if [ -s errors.txt ]; then
             echo "有错误"
             echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br><pre>$errors</pre>" >> $GITHUB_STEP_SUMMARY
           else
             echo "无错误"
             echo "should_build=true" >> $GITHUB_OUTPUT
@@ -47,37 +48,11 @@ jobs:
           name: errors
           path: errors.txt
 
-  echo-error:
-    needs: check
-    name: Echo errors
-    runs-on: ubuntu-latest
-    if: ${{ needs.check.outputs.should_build }} == "false"
-    steps:
-      - run: |
-          $e < "${{ needs.check.outputs.should_build }}"
-          echo $e
-          echo $e -eq "true"
-          echo $e -eq "false"
-
-      - if: ${{ needs.check.outputs.should_build }} == "false"
-        run: echo "o"
-    
-      - name: Download errors
-        uses: actions/download-artifact@v4
-        with:
-          name: errors
-
-      - name: Echo errors and add to Summary
-        run: |
-          errors=$(<errors.txt)
-          echo $errors
-          echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br>$errors" >> $GITHUB_STEP_SUMMARY
-
   build:
     needs: check
     name: Build Executables
     runs-on: ${{ matrix.os }}
-    if: fromJSON(${{ needs.check.outputs.should_build }}) == true
+    if: ${{ needs.check.outputs.should_build == "true" }}
     strategy:
       matrix:
         include:
