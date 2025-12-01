@@ -53,7 +53,7 @@ jobs:
     needs: check
     name: Build Executables
     runs-on: ${{ matrix.os }}
-    if: ${{ needs.check.outputs.should_build == "true" }}
+    if: ${{ needs.check.outputs.should_build == 'true' }}
     strategy:
       matrix:
         include:
