@@ -62,7 +62,7 @@ jobs:
         run: |
           errors=$(<errors.txt)
           echo $errors
-          echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br>$errors"
+          echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br>$errors" >> $GITHUB_STEP_SUMMARY
 
   build:
     needs: check
