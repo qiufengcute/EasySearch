@@ -38,6 +38,7 @@ jobs:
             echo "should_build=false" >> $GITHUB_OUTPUT
             errors=$(cat errors.txt)
             echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br><pre>$errors</pre>" >> $GITHUB_STEP_SUMMARY
+            exit 1
           else
             echo "无错误"
             echo "should_build=true" >> $GITHUB_OUTPUT
