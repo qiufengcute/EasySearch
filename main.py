@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QAbstractItemView, QMessageBox)
 from PySide6.QtCore import Qt, QTimer, QThread, Signal, QUrl
 from urllib.parse import quote_plus
-from PySide6.QtGui import QFont, QDesktopServices
+from PySide6.QtGui import QFont, QDesktopServices, QIcon
 from urllib.parse import urlparse
 from urllib.parse import urlunparse, parse_qsl, urlencode, unquote
 import sys
@@ -693,6 +693,7 @@ class SettingsWindow(QMainWindow):
 
     def setup_ui(self):
         self.setWindowTitle("设置 - EasySearch")
+        self.setWindowIcon(QIcon("icon.ico"))
         self.setFixedSize(800, 600)
         
         central_widget = QWidget()
@@ -1255,6 +1256,7 @@ class EasySearchWindow(QMainWindow):
         
     def setup_ui(self):
         self.setWindowTitle("EasySearch")
+        self.setWindowIcon(QIcon("icon.ico"))
         self.setMinimumSize(1000, 700)
         
         # 创建中央部件
@@ -1284,7 +1286,8 @@ class EasySearchWindow(QMainWindow):
         top_layout.setAlignment(Qt.AlignCenter)
         
         # Logo和标题
-        self.logo_label = QLabel("🔍 EasySearch")
+        self.logo_label = QLabel()
+        self.logo_label.setText("<img src='icon.ico' width='24' height='24'> EasySearch")
         self.logo_label.setStyleSheet("""
             QLabel {
                 font-size: 36px;
