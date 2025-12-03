@@ -107,14 +107,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
-          pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --icon icon.ico --name "${{ matrix.name }}.exe" main.py
+          pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
           echo "=== 构建完成 ==="
   
       - name: Build executable for Unix
         if: matrix.os != 'windows-latest'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
-          pyinstaller --noconfirm --onefile --add-data "icon.ico:." --icon icon.ico --name "${{ matrix.name }}" main.py
+          pyinstaller --noconfirm --onefile --add-data "icon.ico:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
@@ -123,7 +123,7 @@ jobs:
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
           certutil -hashfile "dist/${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
           set /p CHECKSUM=<checksum_temp.txt
-          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_${{ matrix.name }}.txt
+          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           del checksum_temp.txt
           echo "===生成完成==="
         shell: cmd
@@ -134,7 +134,7 @@ jobs:
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
           shasum -a 256 "dist/${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
           CHECKSUM=$(cat "checksum_temp.txt")
-          echo "${{ matrix.name }}:$CHECKSUM" > sha256_${{ matrix.name }}.txt
+          echo "${{ matrix.name }}:$CHECKSUM" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           rm -f "checksum_temp.txt"
           echo "===生成完成==="
   
@@ -143,8 +143,8 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: |
-            dist/${{ matrix.name }}*
-            sha256_${{ matrix.name }}.txt
+            dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}*
+            sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
 
   create-release:
     name: Create Release
