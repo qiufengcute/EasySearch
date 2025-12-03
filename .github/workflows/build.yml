@@ -7,6 +7,10 @@ on:
         description: 'Version number'
         required: true
         type: string
+      message:
+        description: 'Release message'
+        required: false
+        type: string
 
 jobs:
   check:
@@ -154,6 +158,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
+          body: ${{ github.event.inputs.message }}
           draft: true
           files: |
             ./artifacts/**/*
