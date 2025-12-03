@@ -1,4 +1,4 @@
-name: Build and Create Release Draft
+name: Build and Create Release
 
 on:
   workflow_dispatch:
@@ -147,7 +147,7 @@ jobs:
             sha256_${{ matrix.name }}.txt
 
   create-release:
-    name: Create Release Draft
+    name: Create Release
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -161,10 +161,17 @@ jobs:
       - name: Prepare Release Message
         id: prepare-message
         run: |
-          formatted_message=$(echo "${{ github.event.inputs.message }}" | sed 's/|||/\n/g')
-          echo "Formatted message:"
-          echo "$formatted_message"
-          echo "final_message=$formatted_message" >> $GITHUB_OUTPUT
+          INPUT_MESSAGE="${{ github.event.inputs.message }}"
+          if [ -z "$INPUT_MESSAGE" ]; then
+            FINAL_MESSAGE="Release ${{ github.event.inputs.version }}"
+          else
+            FINAL_MESSAGE=$(echo "$INPUT_MESSAGE" | sed 's/|||/\\n/g')
+          fi
+          
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "final_message<<$EOF" >> $GITHUB_OUTPUT
+          echo "$FINAL_MESSAGE" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
   
       - name: Create Release Draft with Tag
         id: create-release
@@ -180,4 +187,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Add Release Link to Summary
-        run: echo "<h1>🚀 草稿Release已创建</h1>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
+        run: |
+          if [${{ github.event.inputs.draft }}]; then
+            echo "<h1>🚀 草稿Release已创建</h1>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "<h1>🚀 Release已创建</h1>Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a>" >> $GITHUB_STEP_SUMMARY
+          fi
