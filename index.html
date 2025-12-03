@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <title>EasySearch - 简易搜索聚合工具</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 40px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #4285f4 0%, #3367d6 100%);
+            color: white;
+            padding: 30px 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+            margin-bottom: 40px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.8rem;
+            color: white;
+        }
+        
+        .logo-text h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            border: 1px solid #eef1f5;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f4f8;
+        }
+        
+        .card-title i {
+            color: #4285f4;
+            font-size: 1.4rem;
+        }
+        
+        .card-title h2 {
+            font-size: 1.6rem;
+            color: #2c3e50;
+        }
+        
+        .feature-list {
+            list-style-type: none;
+        }
+        
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            color: #34a853;
+            margin-right: 12px;
+            margin-top: 3px;
+            font-size: 1.1rem;
+        }
+        
+        .feature-content h4 {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .feature-content p {
+            color: #5f6368;
+            font-size: 0.95rem;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #e8f0fe 0%, #d7e3fc 100%);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #4285f4;
+            margin: 20px 0;
+        }
+        
+        .highlight-box h3 {
+            color: #3367d6;
+            margin-bottom: 10px;
+        }
+        
+        .requirements-list {
+            list-style-type: none;
+            margin: 15px 0;
+        }
+        
+        .requirements-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .requirements-list i {
+            color: #34a853;
+            margin-right: 10px;
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 20px;
+        }
+        
+        .download-card {
+            background: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+            color: white;
+            text-align: center;
+            padding: 25px;
+        }
+        
+        .download-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background-color: white;
+            color: #4285f4;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .download-btn:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .tech-item {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #5f6368;
+            font-size: 0.9rem;
+        }
+        
+        .note-box {
+            background-color: #fff8e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .logo {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>EasySearch</h1>
+                        <p>简易搜索聚合工具</p>
+                    </div>
+                </div>
+                <div>
+                    <p>基于 Python + PySide6 开发的桌面搜索工具</p>
+                    <p>聚合多个搜索引擎，智能过滤排序</p>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="left-column">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>项目概述</h2>
+                    </div>
+                    <p>EasySearch 是一个基于 Python 和 PySide6 开发的桌面搜索聚合应用程序。它通过配置多个搜索引擎API，聚合搜索结果并进行智能排序和过滤。</p>
+                    
+                    <div class="note-box">
+                        <p><i class="fas fa-exclamation-circle"></i> <strong>说明：</strong>这是一个单文件 Python 应用程序，仅需要 <code>icon.ico</code> 作为图标文件。</p>
+                    </div>
+                    
+                    <div class="highlight-box">
+                        <h3><i class="fas fa-lightbulb"></i> 核心设计理念</h3>
+                        <p>1. <strong>简洁实用</strong>：界面简洁，功能实用，无冗余设计</p>
+                        <p>2. <strong>配置灵活</strong>：支持自定义多个搜索引擎API和过滤规则</p>
+                        <p>3. <strong>实时响应</strong>：多线程搜索，结果实时返回和显示</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-cogs"></i>
+                        <h2>主要功能</h2>
+                    </div>
+                    
+                    <ul class="feature-list">
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-search-plus"></i></div>
+                            <div class="feature-content">
+                                <h4>多搜索引擎聚合</h4>
+                                <p>同时配置多个搜索引擎API进行并行搜索，支持自定义API URL、密钥和结果字段映射</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-filter"></i></div>
+                            <div class="feature-content">
+                                <h4>智能权重排序</h4>
+                                <p>基于网站权威性、发布时间、黑白名单等因素自动计算权重并排序</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-sliders-h"></i></div>
+                            <div class="feature-content">
+                                <h4>配置管理系统</h4>
+                                <p>完整的设置界面，支持黑白名单管理、API配置、主题切换，所有设置自动保存</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-code"></i></div>
+                            <div class="feature-content">
+                                <h4>URL规范化处理</h4>
+                                <p>自动去除跟踪参数(utm_*, fbclid等)，标准化URL格式，实现有效的搜索结果去重</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="feature-content">
+                                <h4>智能时间解析</h4>
+                                <p>支持多种时间格式（时间戳、ISO格式、字符串日期）的发布日期间解析和显示</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-palette"></i></div>
+                            <div class="feature-content">
+                                <h4>主题系统</h4>
+                                <p>提供浅色、深色和跟随系统三种主题模式，界面元素自动适配</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="card download-card">
+                    <h3><i class="fas fa-file-download"></i> 获取程序</h3>
+                    <p>单文件 Python 脚本</p>
+                    <div class="tech-stack">
+                        <span class="tech-item">Python</span>
+                        <span class="tech-item">PySide6</span>
+                        <span class="tech-item">多线程</span>
+                        <span class="tech-item">JSON配置</span>
+                    </div>
+                    <a href="https://github.com/qiufengcute/EasySearch/releases" class="download-btn">
+                        <i class="fas fa-download"></i> 下载可执行文件
+                    </a>
+                    <a href="https://github.com/qiufengcute/EasySearch" class="download-btn">
+                        <i class="fas fa-download"></i> 下载源码文件
+                    </a>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>注意事项</h2>
+                    </div>
+                    <ul class="requirements-list">
+                        <li><i class="fas fa-info-circle"></i> 需要自行配置搜索引擎API</li>
+                        <li><i class="fas fa-info-circle"></i> 首次使用需在设置中添加API</li>
+                        <li><i class="fas fa-info-circle"></i> 配置保存在用户AppData/EasySearch目录</li>
+                        <li><i class="fas fa-info-circle"></i> 错误日志保存在用户AppData/EasySearch/Logs目录</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fas fa-user"></i>
+                        <h2>开发者信息</h2>
+                    </div>
+                    <p><strong>开发者：</strong> Qiufeng</p>
+                    <p><strong>许可证：</strong> MIT License</p>
+                    <p><strong>类型：</strong> 开源桌面应用程序</p>
+                    <p><strong>特点：</strong> 单文件、配置灵活、实时搜索</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
