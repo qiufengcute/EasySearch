@@ -165,7 +165,7 @@ jobs:
           if [ -z "$INPUT_MESSAGE" ]; then
             FINAL_MESSAGE="Release ${{ github.event.inputs.version }}"
           else
-            FINAL_MESSAGE=$(echo "$INPUT_MESSAGE" | sed 's/|||/\\n/g')
+            FINAL_MESSAGE=$(echo "$INPUT_MESSAGE" | sed 's/|||/<br>/g')
           fi
           
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
@@ -188,7 +188,7 @@ jobs:
   
       - name: Add Release Link to Summary
         run: |
-          if [${{ github.event.inputs.draft }}]; then
+          if ${{ github.event.inputs.draft }} then
             echo "<h1>🚀 草稿Release已创建</h1>草稿Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a><br>仓库协作者可进行完善然后发布" >> $GITHUB_STEP_SUMMARY
           else
             echo "<h1>🚀 Release已创建</h1>Release：<a href='${{ steps.create-release.outputs.url }}'>点此跳转</a>" >> $GITHUB_STEP_SUMMARY
