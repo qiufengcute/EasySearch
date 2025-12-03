@@ -35,42 +35,26 @@ jobs:
           python-version: '3.12'
 
       - name: Upgrade pip and install dependencies
-        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install pyflakes
 
-      - name: Check code with PowerShell
+      - name: Check
         id: check
-        shell: pwsh
         run: |
-          # 用PowerShell的方式检查
-          pyflakes . 2>&1 | Out-File -FilePath errors.txt
-          
-          $errors = Get-Content errors.txt -Raw
-          
-          if ($errors.Trim().Length -gt 0) {
-              Write-Host "❌ 发现代码错误" -ForegroundColor Red
-              Write-Host "should_build=false" >> $env:GITHUB_OUTPUT
-              
-              # 漂亮的HTML输出
-              $htmlError = $errors -replace "`n", "<br>`n" -replace "  ", "&nbsp;&nbsp;"
-              @"
-              <h1>🔍 代码检查发现错误！</h1>
-              <p>请修复以下错误后再构建：</p>
-              <div style="background:#1e1e1e;color:#d4d4d4;padding:15px;border-radius:5px;font-family:'Courier New',monospace;">
-              <pre>$htmlError</pre>
-              </div>
-              "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-              
-              exit 1
-          } else {
-              Write-Host "✅ 代码检查通过" -ForegroundColor Green
-              Write-Host "should_build=true" >> $env:GITHUB_OUTPUT
-              Remove-Item errors.txt -ErrorAction SilentlyContinue
-          }
+          pyflakes . > errors.txt || :
+          if [ -s errors.txt ]; then
+            echo "有错误"
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            errors=$(cat errors.txt)
+            echo "<h1>Check error!</h1>Find errors!Please edit.<br>ERRORS:<br><pre>$errors</pre>" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "无错误"
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Upload artifact if errors exist
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         if: ${{ steps.check.outputs.should_build == 'false' }}
         with:
@@ -88,27 +72,21 @@ jobs:
           - name: 'winx64'
             os: 'windows-latest'
             arch: 'x64'
-            icon_arg: '--icon icon.ico --add-data "icon.ico:."'
           - name: 'winx86'
             os: 'windows-latest'
             arch: 'x86'
-            icon_arg: '--icon icon.ico --add-data "icon.ico:."'
           - name: 'linuxx64'
             os: 'ubuntu-latest'
             arch: 'x64'
-            icon_arg: '--add-data "icon.ico:."'
           - name: 'linuxx86'
             os: 'ubuntu-latest'
             arch: 'x86'
-            icon_arg: '--add-data "icon.ico:."'
           - name: 'macosintel'
             os: 'macos-latest'
             arch: 'x64'
-            icon_arg: '--add-data "icon.ico:."'
           - name: 'macosm'
             os: 'macos-latest'
             arch: 'arm64'
-            icon_arg: '--add-data "icon.ico:."'
     
     steps:
       - name: Checkout code
@@ -120,76 +98,45 @@ jobs:
           python-version: '3.12'
   
       - name: Upgrade pip and install dependencies
-        shell: pwsh
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
-          
-          # 检查并安装requirements.txt
-          if (Test-Path "requirements.txt") {
-              pip install -r requirements.txt
-          } else {
-              Write-Warning "requirements.txt 不存在，跳过依赖安装"
-          }
+          pip install -r requirements.txt
   
-      - name: Build executable (通用PowerShell版本)
-        shell: pwsh
+      - name: Build executable for Windows
+        if: matrix.os == 'windows-latest'
         run: |
-          Write-Host "=== 开始构建 ${{ matrix.name }} ===" -ForegroundColor Cyan
-          
-          $version = "${{ github.event.inputs.version }}"
-          $name = "${{ matrix.name }}"
-          
-          # 根据平台决定扩展名和参数
-          if ("${{ matrix.os }}" -like "*windows*") {
-              $exeName = "EasySearch_${version}_${name}.exe"
-              $windowedArg = "--windowed"
-          } else {
-              $exeName = "EasySearch_${version}_${name}"
-              $windowedArg = ""
-          }
-          
-          # 构建PyInstaller命令
-          $pyinstallerArgs = @(
-              "--noconfirm",
-              "--onefile",
-              $windowedArg,
-              "${{ matrix.icon_arg }}",
-              "--name", $exeName,
-              "main.py"
-          )
-          
-          # 执行构建
-          Write-Host "执行: pyinstaller $pyinstallerArgs"
-          pyinstaller $pyinstallerArgs
-          
-          Write-Host "=== 构建完成: $exeName ===" -ForegroundColor Green
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
+          echo "=== 构建完成 ==="
   
-      - name: Generate SHA256 checksum (统一PowerShell版本)
-        shell: pwsh
+      - name: Build executable for Unix
+        if: matrix.os != 'windows-latest'
         run: |
-          Write-Host "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ===" -ForegroundColor Yellow
-          
-          $version = "${{ github.event.inputs.version }}"
-          $name = "${{ matrix.name }}"
-          
-          if ("${{ matrix.os }}" -like "*windows*") {
-              $fileName = "EasySearch_${version}_${name}.exe"
-          } else {
-              $fileName = "EasySearch_${version}_${name}"
-          }
-          
-          $filePath = "dist/$fileName"
-          
-          # 计算哈希值
-          $hash = Get-FileHash -Path $filePath -Algorithm SHA256
-          $checksum = $hash.Hash.ToLower()
-          
-          # 保存到文件
-          "$name`:$checksum" | Out-File -FilePath "sha256_EasySearch_${version}_${name}.txt" -Encoding utf8
-          
-          Write-Host "校验码: $checksum" -ForegroundColor Green
-          Write-Host "=== 生成完成 ==="
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          pyinstaller --noconfirm --onefile --add-data "icon.ico:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          echo "=== 构建完成 ==="
+  
+      - name: Generate SHA256 checksum for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+          certutil -hashfile "dist/${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
+          set /p CHECKSUM=<checksum_temp.txt
+          echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          del checksum_temp.txt
+          echo "===生成完成==="
+        shell: cmd
+  
+      - name: Generate SHA256 checksum for Unix
+        if: matrix.os != 'windows-latest'
+        run: |
+          echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+          shasum -a 256 "dist/${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
+          CHECKSUM=$(cat "checksum_temp.txt")
+          echo "${{ matrix.name }}:$CHECKSUM" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          rm -f "checksum_temp.txt"
+          echo "===生成完成==="
   
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -205,48 +152,26 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
   
-      - name: Prepare Release Message with PowerShell
+      - name: Prepare Release Message
         id: prepare-message
-        shell: pwsh
         run: |
-          $inputMessage = "${{ github.event.inputs.message }}"
+          INPUT_MESSAGE="${{ github.event.inputs.message }}"
+          if [ -z "$INPUT_MESSAGE" ]; then
+            FINAL_MESSAGE="Release ${{ github.event.inputs.version }}"
+          else
+            FINAL_MESSAGE=$(echo "$INPUT_MESSAGE" | sed 's/|||/<br>/g')
+          fi
           
-          if ([string]::IsNullOrWhiteSpace($inputMessage)) {
-              $finalMessage = "Release ${{ github.event.inputs.version }}"
-          } else {
-              # 替换 ||| 为换行
-              $finalMessage = $inputMessage -replace '\|\|\|', '<br>'
-          }
-          
-          # 输出结果
-          Write-Host "最终消息: $finalMessage" -ForegroundColor Cyan
-          Write-Output "final_message=$finalMessage" >> $env:GITHUB_OUTPUT
-  
-      - name: Collect artifact files for release
-        id: collect-files
-        shell: pwsh
-        run: |
-          # 收集所有可执行文件和校验文件
-          $files = @()
-          
-          Get-ChildItem -Path ./artifacts -Recurse -File | Where-Object {
-              $_.Name -match '\.(exe|txt)$' -and $_.Name -notmatch 'errors'
-          } | ForEach-Object {
-              $files += $_.FullName
-              Write-Host "📦 添加文件: $($_.Name)"
-          }
-          
-          # 生成文件列表字符串
-          $fileList = $files -join "`n"
-          Write-Output "file_list=$fileList" >> $env:GITHUB_OUTPUT
-          Write-Host "总共找到 $($files.Count) 个文件"
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "final_message<<$EOF" >> $GITHUB_OUTPUT
+          echo "$FINAL_MESSAGE" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
   
       - name: Create Release Draft with Tag
         id: create-release
@@ -256,44 +181,15 @@ jobs:
           name: Release ${{ github.event.inputs.version }}
           body: ${{ steps.prepare-message.outputs.final_message }}
           draft: ${{ github.event.inputs.draft }}
-          files: ${{ steps.collect-files.outputs.file_list }}
+          files: |
+            ./artifacts/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Add Release Link to Summary
-        shell: pwsh
         run: |
-          $isDraft = [System.Convert]::ToBoolean('${{ github.event.inputs.draft }}')
-          $releaseUrl = '${{ steps.create-release.outputs.url }}'
-          
-          if ($isDraft) {
-              @"
-              <h1>📝 草稿Release已创建</h1>
-              <p>草稿Release：<a href='$releaseUrl'>点此跳转</a></p>
-              <p><strong>仓库协作者可进行完善然后发布</strong></p>
-              <div style="background:#e3f2fd;padding:15px;border-radius:5px;margin-top:10px;">
-              <h3>🎯 本次构建包含:</h3>
-              <ul>
-              <li>Windows x64/x86 版本</li>
-              <li>Linux x64/x86 版本</li>
-              <li>macOS Intel/ARM 版本</li>
-              <li>所有版本均包含SHA256校验文件</li>
-              </ul>
-              </div>
-              "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-          } else {
-              @"
-              <h1>🚀 Release已发布！</h1>
-              <p>正式Release：<a href='$releaseUrl'>点此查看</a></p>
-              <div style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:10px;">
-              <h3>✅ 构建完成:</h3>
-              <ul>
-              <li>版本: ${{ github.event.inputs.version }}</li>
-              <li>时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm')</li>
-              <li>包含: 6个平台的可执行文件</li>
-              </ul>
-              </div>
-              "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-          }
-          
-          Write-Host "✅ Release页面已更新到摘要" -ForegroundColor Green
+          if ${{ github.event.inputs.draft }}; then
+            echo "<h1>🚀 草稿 Release已发布！</h1><br><p><a href='$releaseUrl'>点此查看</a></p><br><div style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:10px;">版本: ${{ github.event.inputs.version }}</div>" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "<h1>🚀 Release已发布！</h1><br><p><a href='$releaseUrl'>点此查看</a></p><br><div style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:10px;">版本: ${{ github.event.inputs.version }}</div>" >> $GITHUB_STEP_SUMMARY
+          fi
