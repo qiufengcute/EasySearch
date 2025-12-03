@@ -8,9 +8,9 @@ on:
         required: true
         type: string
       message:
-        description: 'Release message'
+        description: 'Release message,use "|||" for line breaks'
         required: false
-        type: textarea
+        type: string
         default: ''
       draft:
         description: 'Create as draft release'
@@ -158,13 +158,21 @@ jobs:
         with:
           path: ./artifacts
   
+      - name: Prepare Release Message
+        id: prepare-message
+        run: |
+          formatted_message=$(echo "${{ github.event.inputs.message }}" | sed 's/|||/\n/g')
+          echo "Formatted message:"
+          echo "$formatted_message"
+          echo "final_message=$formatted_message" >> $GITHUB_OUTPUT
+  
       - name: Create Release Draft with Tag
         id: create-release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.version }}
           name: Release ${{ github.event.inputs.version }}
-          body: ${{ github.event.inputs.message }}
+          body: ${{ steps.prepare-message.outputs.final_message }}
           draft: ${{ github.event.inputs.draft }}
           files: |
             ./artifacts/**/*
