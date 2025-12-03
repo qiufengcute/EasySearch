@@ -8,7 +8,9 @@ on:
         required: true
         type: string
       message:
-        description: 'Release message.<br>Use "|||" for line breaks.<br>Please use HTML tags,not Markdown'
+        description: 'Release message.
+          Use "|||" for line breaks.
+          Please use HTML tags,not Markdown'
         required: false
         type: string
         default: ''
