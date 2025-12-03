@@ -10,7 +10,7 @@ on:
       message:
         description: 'Release message'
         required: false
-        type: string
+        type: textarea
 
 jobs:
   check:
