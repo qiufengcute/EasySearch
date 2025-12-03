@@ -189,7 +189,7 @@ jobs:
       - name: Add Release Link to Summary
         run: |
           if ${{ github.event.inputs.draft }}; then
-            echo "<h1>🚀 草稿 Release已发布！</h1><br><p><a href='$releaseUrl'>点此查看</a></p><br><div style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:10px;">版本: ${{ github.event.inputs.version }}</div>" >> $GITHUB_STEP_SUMMARY
+            echo "<h1>🚀 草稿 Release已发布！</h1><a href='$releaseUrl'>点此查看</a>版本: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           else
-            echo "<h1>🚀 Release已发布！</h1><br><p><a href='$releaseUrl'>点此查看</a></p><br><div style="background:#e8f5e9;padding:15px;border-radius:5px;margin-top:10px;">版本: ${{ github.event.inputs.version }}</div>" >> $GITHUB_STEP_SUMMARY
+            echo "<h1>🚀 Release已发布！</h1><a href='$releaseUrl'>点此查看</a>版本: ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
           fi
