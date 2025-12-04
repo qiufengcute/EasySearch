@@ -17,14 +17,11 @@ import time
 from datetime import datetime
 from typing import Any, Optional
 import base64
+import pathlib
 
 
 def get_source_path(relative_path: str) -> str:
-    try:
-        base_path = sys._MEIPASS  # type: ignore
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+    return os.path.join(pathlib.Path(__file__).parent.resolve(), relative_path)
 
 
 def icon_to_base64(icon: QIcon, size: tuple[int, int] = (32, 32)) -> str:
