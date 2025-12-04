@@ -19,6 +19,14 @@ from typing import Any, Optional
 import base64
 
 
+def get_source_path(relative_path: str) -> str:
+    try:
+        base_path = sys._MEIPASS  # type: ignore
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 def icon_to_base64(icon: QIcon, size: tuple[int, int] = (32, 32)) -> str:
     """将QIcon转换为Base64字符串"""
     pixmap = icon.pixmap(*size)
@@ -621,7 +629,7 @@ class SearchResultWidget(QWidget):
 
         # 标题（蓝色） — 使用显式的 inline 样式并保存为实例属性
         self.title_label = QLabel()
-        self.title_label.setText(f"<img src={icon_to_base64(self.result_data.get('icon')) if self.result_data.get('icon', None) else icon_to_base64(QIcon('defaulticon'))} width='32' height='32'> {str(self.result_data.get("title", ""))}")
+        self.title_label.setText(f"<img src={icon_to_base64(self.result_data.get('icon')) if self.result_data.get('icon', None) else icon_to_base64(QIcon(get_source_path('defaulticon')))} width='32' height='32'> {str(self.result_data.get("title", ""))}")
         title_font = QFont()
         title_font.setPointSize(14)
         self.title_label.setFont(title_font)
@@ -753,7 +761,7 @@ class SettingsWindow(QMainWindow):
 
     def setup_ui(self):
         self.setWindowTitle("设置 - EasySearch")
-        self.setWindowIcon(QIcon("icon.ico"))
+        self.setWindowIcon(QIcon(get_source_path("icon.ico")))
         self.setFixedSize(800, 600)
         
         central_widget = QWidget()
@@ -1316,7 +1324,7 @@ class EasySearchWindow(QMainWindow):
         
     def setup_ui(self):
         self.setWindowTitle("EasySearch")
-        self.setWindowIcon(QIcon("icon.ico"))
+        self.setWindowIcon(QIcon(get_source_path("icon.ico")))
         self.setMinimumSize(1000, 700)
         
         # 创建中央部件
@@ -1347,7 +1355,7 @@ class EasySearchWindow(QMainWindow):
         
         # Logo和标题
         self.logo_label = QLabel()
-        self.logo_label.setText("<img src='icon.ico' width='24' height='24'> EasySearch")
+        self.logo_label.setText(f"<img src='{get_source_path('icon.ico')}' width='24' height='24'> EasySearch")
         self.logo_label.setStyleSheet("""
             QLabel {
                 font-size: 36px;
