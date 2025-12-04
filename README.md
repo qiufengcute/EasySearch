@@ -1,5 +1,7 @@
 # EasySearch
 
+[![ICON](icon.ico)](#)
+
 [![Stars](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.stargazers_count&label=Stars&color=FFD700&logoColor=white)](https://github.com/qiufengcute/EasySearch/stargazers)
 [![Forks](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.forks_count&label=Forks&color=007EC6&logoColor=white)](https://github.com/qiufengcute/EasySearch/forks)
 [![Issues](https://img.shields.io/badge/dynamic/json?url=https://api.github.com/repos/qiufengcute/EasySearch&query=$.open_issues_count&label=Issues&color=FF6B6B&logoColor=white)](https://github.com/qiufengcute/EasySearch/issues)
