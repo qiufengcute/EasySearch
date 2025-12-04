@@ -3,7 +3,8 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QScrollArea, QStackedWidget, QTableWidget,
                               QTableWidgetItem, QHeaderView, QComboBox,
                               QAbstractItemView, QMessageBox)
-from PySide6.QtCore import Qt, QTimer, QThread, Signal, QUrl
+from PySide6.QtCore import (Qt, QTimer, QThread, Signal, QUrl, QByteArray, 
+                              QBuffer, QLoggingCategory)
 from urllib.parse import quote_plus
 from PySide6.QtGui import QFont, QDesktopServices, QIcon
 from urllib.parse import urlparse
@@ -15,6 +16,23 @@ import requests
 import time
 from datetime import datetime
 from typing import Any, Optional
+import base64
+
+
+def icon_to_base64(icon: QIcon, size: tuple[int, int] = (32, 32)) -> str:
+    """将QIcon转换为Base64字符串"""
+    pixmap = icon.pixmap(*size)
+    
+    # 将QPixmap转换为Base64
+    byte_array = QByteArray()
+    buffer = QBuffer(byte_array)
+    buffer.open(QBuffer.WriteOnly)
+    pixmap.save(buffer, "PNG")  # 保存为PNG格式
+    buffer.close()
+    
+    # 编码为Base64
+    base64_data = base64.b64encode(byte_array.data()).decode('utf-8')
+    return f"data:image/png;base64,{base64_data}"
 
 
 def normalize_publish_date(value: Any) -> Optional[datetime]:
@@ -117,8 +135,29 @@ def canonicalize_url(url: Optional[str]) -> str:
     except Exception:
         return (up.geturl() if hasattr(up, 'geturl') else url) or ''
 
+
+class ICONCacheManager:
+    def __init__(self, max_size=500):
+        self.cache = {}
+        self.max_size = max_size
+
+    def add_icon(self, url: str, icon_data: QIcon):
+        self.cache[url] = {"icon":icon_data, "timestamp": time.time()}
+        if len(self.cache) > self.max_size:
+            # 删除最旧的图标
+            oldest_url = min(self.cache.items(), key=lambda item: item[1]["timestamp"])[0]
+            del self.cache[oldest_url]
+
+    def get_icon(self, url: str) -> Optional[QIcon]:
+        entry = self.cache.get(url)
+        if entry:
+            return entry["icon"]
+        return None
+
+
 class SearchAPIManager:
     def __init__(self):
+        self.iconcache = ICONCacheManager()
         self.blacklist = ["csdn.net"]
         self.whitelist = []
         self.authoritative_sites = ["github.com", "stackoverflow.com"]
@@ -366,7 +405,7 @@ class SearchWorker(QThread):
                     header = {json_header_key: api_key}
 
                 try:
-                    resp = requests.get(req_url, timeout=(15,60), headers=header)
+                    resp = requests.get(req_url, timeout=(15,20), headers=header)
                 except Exception as e:
                     # 网络或请求错误 -> 发出错误信号并继续下一个引擎
                     try:
@@ -465,7 +504,24 @@ class SearchWorker(QThread):
                     # 只有 title 字段缺失或为空时才兜底
                     result_title = title if title else f"{name} result"
                     norm_url = canonicalize_url(url or '')
-                    result = {'title': result_title, 'url': url or '', 'norm_url': norm_url, 'snippet': snippet or '', 'source': name, 'publish_date': publish_date}
+                    # 获取ICON
+                    icon = self.api_manager.iconcache.get_icon(url)
+                    if not icon:
+                        icon_url = norm_url.split("/")[0] + "//" + norm_url.split("/")[2] + "/favicon.ico"
+                        try:
+                            icon_resp = requests.get(icon_url, timeout=(15,10))
+                            if icon_resp.status_code == 200:
+                                from PySide6.QtGui import QPixmap
+                                from PySide6.QtCore import QByteArray
+                                pixmap = QPixmap()
+                                pixmap.loadFromData(QByteArray(icon_resp.content))
+                                icon = QIcon(pixmap)
+                                self.api_manager.iconcache.add_icon(url, icon)
+                            else:
+                                icon = None
+                        except Exception:
+                            icon = None
+                    result = {'title': result_title, 'url': url or '', 'norm_url': norm_url, 'snippet': snippet or '', 'source': name, 'publish_date': publish_date, 'icon': icon}
                     # 计算权重
                     result['weight'] = self.api_manager.calculate_weight(result)
                     # 白名单标记
@@ -488,6 +544,9 @@ class SearchWorker(QThread):
                 except Exception:
                     pass
                 continue
+
+    def stop(self):
+        self.terminate()
 
 class LoadingDots(QLabel):
     def __init__(self):
@@ -561,7 +620,8 @@ class SearchResultWidget(QWidget):
         title_layout.addWidget(icon_label)
 
         # 标题（蓝色） — 使用显式的 inline 样式并保存为实例属性
-        self.title_label = QLabel(str(self.result_data.get("title", "")))
+        self.title_label = QLabel()
+        self.title_label.setText(f"<img src={icon_to_base64(self.result_data.get('icon')) if self.result_data.get('icon', None) else icon_to_base64(QIcon('defaulticon'))} width='32' height='32'> {str(self.result_data.get("title", ""))}")
         title_font = QFont()
         title_font.setPointSize(14)
         self.title_label.setFont(title_font)
@@ -1697,9 +1757,23 @@ class EasySearchWindow(QMainWindow):
             if isinstance(widget, SearchResultWidget):
                 widget.theme = theme
                 widget.update_theme()
+    
+    def closeEvent(self, event):
+        # 关闭窗口时尝试停止所有后台线程
+        for worker in self._workers:
+            try:
+                worker.stop()
+            except Exception:
+                pass
+        super().closeEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    QLoggingCategory.setFilterRules("""
+qt.text.font.db.warning=false
+qt.text.font.db.debug=false
+qt.text.font.db.info=false
+""")
     
     window = EasySearchWindow()
     window.show()
