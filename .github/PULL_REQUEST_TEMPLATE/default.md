@@ -1,7 +1,4 @@
-**Pull Request Template**
-
----
-**PR Type** (check all applicable):
+PR Type** (check all applicable):
 - [ ] New Feature
 - [ ] Bug Fix
 - [ ] Code Refactor / Optimization
