@@ -5,8 +5,9 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                               QAbstractItemView, QMessageBox)
 from PySide6.QtCore import (Qt, QTimer, QThread, Signal, QUrl, QByteArray, 
                               QBuffer, QLoggingCategory)
+from urllib3.exceptions import InsecureRequestWarning
 from urllib.parse import quote_plus
-from PySide6.QtGui import QFont, QDesktopServices, QIcon
+from PySide6.QtGui import QFont, QDesktopServices, QIcon, QPixmap
 from urllib.parse import urlparse
 from urllib.parse import urlunparse, parse_qsl, urlencode, unquote
 import sys
@@ -18,7 +19,7 @@ from datetime import datetime
 from typing import Any, Optional
 import base64
 import pathlib
-
+from favicon import get
 
 def get_source_path(relative_path: str) -> str:
     return os.path.join(pathlib.Path(__file__).parent.resolve(), relative_path)
@@ -362,7 +363,21 @@ class SearchWorker(QThread):
         self.query = query
 
     def run(self):
-        # 对每个启用的搜索引擎按其配置的 URL 发起请求，谁先返回就先 emit
+        def get_base_url(url, edit_sw=False):
+            base_url = url.split('/')[0] + '//' + url.split('/')[2]
+            if base_url.endswith('/'):
+                base_url = base_url[:-1]
+            if edit_sw and base_url.endswith('stackoverflow.com'):
+                base_url = 'https://stackoverflow.co'
+            NO_SSL_VERIFY_DOMAINS = [
+                'github.com',
+                'steamcommunity.com',
+                'store.steampowered.com'
+            ]
+            ssl_verify = not any(base_url.endswith(d) for d in NO_SSL_VERIFY_DOMAINS)
+            return (base_url, ssl_verify)
+
+        # 对每个启用的搜索引擎按其配置的 URL 发起请求，顺序请求
         engines = list(self.api_manager.search_engines.items())
         for name, cfg in engines:
             if not cfg.get('enabled'):
@@ -381,6 +396,8 @@ class SearchWorker(QThread):
             # 构建请求 URL：支持包含 {query} 和 {apikey} 占位符
             # 构建请求 URL：支持包含 {query} 和 {apikey} 占位符
             try:
+                t = get_base_url(api_url)
+                base_url, ssl_verify = t
                 req_url = api_url
                 # 支持多种占位符，避免只识别 {query} 导致重复追加参数
                 query_placeholders = ['{query}', '{q}', '{keyword}', '{search}']
@@ -410,7 +427,7 @@ class SearchWorker(QThread):
                     header = {json_header_key: api_key}
 
                 try:
-                    resp = requests.get(req_url, timeout=(15,20), headers=header)
+                    resp = requests.get(req_url, timeout=(15,20), headers=header, verify=ssl_verify)
                 except Exception as e:
                     # 网络或请求错误 -> 发出错误信号并继续下一个引擎
                     try:
@@ -509,23 +526,40 @@ class SearchWorker(QThread):
                     # 只有 title 字段缺失或为空时才兜底
                     result_title = title if title else f"{name} result"
                     norm_url = canonicalize_url(url or '')
+
                     # 获取ICON
-                    icon = self.api_manager.iconcache.get_icon(url)
-                    if not icon:
-                        icon_url = norm_url.split("/")[0] + "//" + norm_url.split("/")[2] + "/favicon.ico"
-                        try:
-                            icon_resp = requests.get(icon_url, timeout=(15,10))
-                            if icon_resp.status_code == 200:
-                                from PySide6.QtGui import QPixmap
-                                from PySide6.QtCore import QByteArray
-                                pixmap = QPixmap()
-                                pixmap.loadFromData(QByteArray(icon_resp.content))
-                                icon = QIcon(pixmap)
-                                self.api_manager.iconcache.add_icon(url, icon)
-                            else:
-                                icon = None
-                        except Exception:
-                            icon = None
+                    icon = None
+                    if url:
+                        t = get_base_url(url, True)
+                        base_url, ssl_verify = t
+                        icon = self.api_manager.iconcache.get_icon(base_url)
+                        if not icon:
+                            try:
+                                headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+                                icon_url = get(base_url, timeout=(10, 5), headers=headers, verify=ssl_verify)
+                                if icon_url:
+                                    icon_req = requests.get(icon_url[0].url, timeout=(10, 5), headers=headers, verify=ssl_verify)
+                                    if icon_req.status_code == 200:
+                                        image_mime_types = [
+                                            'image/x-icon',
+                                            'image/vnd.microsoft.icon',
+                                            'image/png',
+                                            'image/jpeg',
+                                            'image/jpg',
+                                            'image/gif',
+                                            'image/bmp',
+                                            'image/svg+xml',
+                                            'image/webp'
+                                        ]
+                                        content_type = icon_req.headers.get('Content-Type', '').lower()
+                                        if any(mime_type in content_type for mime_type in image_mime_types):
+                                            icon_data = QPixmap()
+                                            icon_data.loadFromData(icon_req.content)
+                                            icon = QIcon(icon_data)
+                                            self.api_manager.iconcache.add_icon(base_url, icon)
+                            except Exception as e:
+                                pass
+
                     result = {'title': result_title, 'url': url or '', 'norm_url': norm_url, 'snippet': snippet or '', 'source': name, 'publish_date': publish_date, 'icon': icon}
                     # 计算权重
                     result['weight'] = self.api_manager.calculate_weight(result)
@@ -626,7 +660,7 @@ class SearchResultWidget(QWidget):
 
         # 标题（蓝色） — 使用显式的 inline 样式并保存为实例属性
         self.title_label = QLabel()
-        self.title_label.setText(f"<img src={icon_to_base64(self.result_data.get('icon')) if self.result_data.get('icon', None) else icon_to_base64(QIcon(get_source_path('defaulticon')))} width='32' height='32'> {str(self.result_data.get("title", ""))}")
+        self.title_label.setText(f"<img src={icon_to_base64(self.result_data.get('icon')) if self.result_data.get('icon', None) else icon_to_base64(QIcon(get_source_path('defaulticon')))} width='24' height='24'> {str(self.result_data.get("title", ""))}")
         title_font = QFont()
         title_font.setPointSize(14)
         self.title_label.setFont(title_font)
@@ -1644,15 +1678,6 @@ class EasySearchWindow(QMainWindow):
             QMessageBox.critical(self, '搜索错误', user_msg)
         except Exception:
             pass
-        # 出错时立即停止动画并显示分页（便于用户查看错误与已有结果）
-        try:
-            self.loading_dots.stop_animation()
-        except Exception:
-            pass
-        try:
-            self.pagination_container.show()
-        except Exception:
-            pass
         
     def open_settings(self):
         self.settings_window = SettingsWindow(self.api_manager, self)
@@ -1779,6 +1804,7 @@ qt.text.font.db.warning=false
 qt.text.font.db.debug=false
 qt.text.font.db.info=false
 """)
+    requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
     
     window = EasySearchWindow()
     window.show()
