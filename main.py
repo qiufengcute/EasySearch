@@ -557,7 +557,7 @@ class SearchWorker(QThread):
                                             icon_data.loadFromData(icon_req.content)
                                             icon = QIcon(icon_data)
                                             self.api_manager.iconcache.add_icon(base_url, icon)
-                            except Exception as e:
+                            except Exception:
                                 pass
 
                     result = {'title': result_title, 'url': url or '', 'norm_url': norm_url, 'snippet': snippet or '', 'source': name, 'publish_date': publish_date, 'icon': icon}
