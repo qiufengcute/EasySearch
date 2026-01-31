@@ -120,10 +120,12 @@ jobs:
           echo "=== 构建完成 ==="
 
       - name: Build executable for MacOS
-        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
           pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.icns --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          zip -r "../EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}_macOS.zip" *.app
+          rm -rf *.app
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
