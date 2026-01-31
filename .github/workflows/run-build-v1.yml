@@ -124,8 +124,10 @@ jobs:
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
           pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.icns --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
-          zip -r "../EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}_macOS.zip" *.app
+          cd dist
+          zip -r "./EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.zip" *
           rm -rf *.app
+          rm ./EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
@@ -139,11 +141,21 @@ jobs:
           echo "===生成完成==="
         shell: cmd
   
-      - name: Generate SHA256 checksum for Unix
-        if: matrix.os != 'windows-latest'
+      - name: Generate SHA256 checksum for Linux
+        if: matrix.os == 'ubuntu-latest'
         run: |
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
           shasum -a 256 "dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
+          CHECKSUM=$(cat "checksum_temp.txt")
+          echo "${{ matrix.name }}:$CHECKSUM" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
+          rm -f "checksum_temp.txt"
+          echo "===生成完成==="
+
+      - name: Generate SHA256 checksum for MacOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
+          shasum -a 256 "dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.zip" | cut -d ' ' -f 1 > "checksum_temp.txt"
           CHECKSUM=$(cat "checksum_temp.txt")
           echo "${{ matrix.name }}:$CHECKSUM" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           rm -f "checksum_temp.txt"
