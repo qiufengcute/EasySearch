@@ -69,20 +69,25 @@ jobs:
     strategy:
       matrix:
         include:
+          # Windows
           - name: 'winx64'
             os: 'windows-latest'
             arch: 'x64'
           - name: 'winx86'
             os: 'windows-latest'
             arch: 'x86'
+
+          # Linux
           - name: 'linuxx64'
             os: 'ubuntu-latest'
             arch: 'x64'
           - name: 'linuxx86'
             os: 'ubuntu-latest'
             arch: 'x86'
+
+          # MacOS
           - name: 'macosintel'
-            os: 'macos-latest'
+            os: 'macos-13'
             arch: 'x64'
           - name: 'macosm'
             os: 'macos-latest'
@@ -93,11 +98,14 @@ jobs:
         uses: actions/checkout@v4
   
       - name: Set up Python 3.12
+        if: matrix.name != 'linuxx86'
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
+          architecture: ${{ matrix.arch }}
   
       - name: Upgrade pip and install dependencies
+        if: matrix.name != 'linuxx86'
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
@@ -109,19 +117,32 @@ jobs:
           echo "=== 开始构建 ${{ matrix.name }} ==="
           pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" main.py
           echo "=== 构建完成 ==="
-  
-      - name: Build executable for Unix
-        if: matrix.os != 'windows-latest'
+
+      - name: Build executable for MacOS and Linux64
+        if: matrix.os != 'windows-latest' && matrix.name != 'linuxx86'
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
-          pyinstaller --noconfirm --onefile --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          echo "=== 构建完成 ==="
+  
+      - name: Build executable for Linux32
+        if: matrix.name == 'linuxx86'
+        run: |
+          echo "=== 开始构建 ${{ matrix.name }} ==="
+          docker run --rm -v $(pwd):/src i386/python:3.10-slim-bullseye /bin/bash -c "
+            python -m pip install --upgrade pip && \
+            pip install pyinstaller && \
+            pip install -r requirements.txt && \
+            pyinstaller --noconfirm --onefile --windowed --add-data "icon.ico:." --add-data "defaulticon.png:." --icon icon.ico --name "EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" main.py
+          "
+          sudo chown -R $USER:$USER dist/
           echo "=== 构建完成 ==="
   
       - name: Generate SHA256 checksum for Windows
         if: matrix.os == 'windows-latest'
         run: |
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
-          certutil -hashfile "dist/${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
+          certutil -hashfile "dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.exe" SHA256 | findstr /v "CertUtil" | findstr /v ":" > "checksum_temp.txt"
           set /p CHECKSUM=<checksum_temp.txt
           echo "${{ matrix.name }}:%CHECKSUM%" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           del checksum_temp.txt
@@ -132,7 +153,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         run: |
           echo "=== 生成 ${{ matrix.name }} 的 SHA256 校验码 ==="
-          shasum -a 256 "dist/${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
+          shasum -a 256 "dist/EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}" | cut -d ' ' -f 1 > "checksum_temp.txt"
           CHECKSUM=$(cat "checksum_temp.txt")
           echo "${{ matrix.name }}:$CHECKSUM" > sha256_EasySearch_${{ github.event.inputs.version }}_${{ matrix.name }}.txt
           rm -f "checksum_temp.txt"
