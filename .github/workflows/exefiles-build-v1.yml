@@ -67,6 +67,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: ${{ needs.check.outputs.should_build == 'true' }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           # Windows
@@ -87,7 +88,7 @@ jobs:
 
           # MacOS
           - name: 'macosintel'
-            os: 'macos-13'
+            os: 'macos-15-intel'
             arch: 'x64'
           - name: 'macosm'
             os: 'macos-latest'
@@ -130,6 +131,7 @@ jobs:
         run: |
           echo "=== 开始构建 ${{ matrix.name }} ==="
           docker run --rm -v $(pwd):/src i386/python:3.10-slim-bullseye /bin/bash -c "
+            cd /src && \
             python -m pip install --upgrade pip && \
             pip install pyinstaller && \
             pip install -r requirements.txt && \
